@@ -3,22 +3,19 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
   findTableLabelsForGeometry,
-  getFeatureId,
   TABLE_LAYER_DEFAULT_STYLE,
   TABLE_LAYER_HOVER_STYLE
 } from "../lib/geoUtils.js";
 
 export default function PanelMap({
-  features,
   tableGeojson,
-  tableLabelPoints,
-  onToggleStatus,
+  labelGeojson,
   loading
 }) {
   const mapRef = useRef(null);
   const containerRef = useRef(null);
-  const inverterLayerRef = useRef(null);
   const tableLayerRef = useRef(null);
+  const labelLayerRef = useRef(null);
   const boundsLockedRef = useRef(false);
 
   useEffect(() => {
@@ -53,11 +50,10 @@ export default function PanelMap({
   }, []);
 
   const handleBounds = useCallback((layer) => {
-    if (!layer || boundsLockedRef.current) return;
+    if (!layer) return;
     const bounds = layer.getBounds?.();
     if (bounds?.isValid()) {
-      mapRef.current?.fitBounds(bounds.pad(0.2));
-      boundsLockedRef.current = true;
+      mapRef.current?.fitBounds(bounds.pad(1));
     }
   }, []);
 
@@ -71,73 +67,54 @@ export default function PanelMap({
 
     const layer = L.geoJSON(tableGeojson, {
       style: () => TABLE_LAYER_DEFAULT_STYLE,
-      filter: (feature) => feature?.geometry && feature.geometry.type !== "Point",
       onEachFeature: (feature, layerRef) => {
-        const labels = findTableLabelsForGeometry(feature.geometry, tableLabelPoints);
-        if (labels.length) {
-          layerRef.bindTooltip(labels.join("<br>"), {
-            sticky: true,
-            className: "lv-table-tooltip",
-            direction: "center"
-          });
-        }
-
         layerRef.on("mouseover", () => {
           layerRef.setStyle(TABLE_LAYER_HOVER_STYLE);
-          if (layerRef.getTooltip()) {
-            layerRef.openTooltip();
-          }
         });
         layerRef.on("mouseout", () => {
           layerRef.setStyle(TABLE_LAYER_DEFAULT_STYLE);
-          if (layerRef.getTooltip()) {
-            layerRef.closeTooltip();
-          }
         });
       }
     });
 
     layer.addTo(mapRef.current);
     tableLayerRef.current = layer;
+    console.log("Table layer added", layer, "Bounds:", layer.getBounds());
     handleBounds(layer);
-  }, [handleBounds, tableGeojson, tableLabelPoints]);
+  }, [handleBounds, tableGeojson]);
 
   useEffect(() => {
     if (!mapRef.current) return;
-    if (inverterLayerRef.current) {
-      inverterLayerRef.current.remove();
-      inverterLayerRef.current = null;
+    if (labelLayerRef.current) {
+      labelLayerRef.current.remove();
+      labelLayerRef.current = null;
     }
-    if (!features?.length) return;
+    if (!labelGeojson) return;
 
-    const layer = L.geoJSON({ type: "FeatureCollection", features }, {
-      filter: (feature) => feature?.geometry?.type === "Point" && !!getFeatureId(feature),
+    const layer = L.geoJSON(labelGeojson, {
+      filter: (feature) => feature?.geometry?.type === "Point",
       pointToLayer: (feature, latlng) => {
-        const inverterId = getFeatureId(feature);
-        if (!inverterId) return null;
-        const status = feature?.properties?.status;
-        const className = status === "done"
-          ? "lv-inverter-label lv-inverter-label--selected"
-          : "lv-inverter-label";
+        const text = feature?.properties?.text;
+        if (!text) return null;
         const marker = L.marker(latlng, {
           icon: L.divIcon({
-            className,
-            html: `<span>${inverterId}</span>`
+            className: "lv-label",
+            html: `<span>${text}</span>`
           })
         });
-        marker.on("click", () => onToggleStatus?.(inverterId));
         return marker;
       }
     });
 
     layer.addTo(mapRef.current);
-    inverterLayerRef.current = layer;
+    labelLayerRef.current = layer;
+    console.log("Label layer added", layer, "Bounds:", layer.getBounds());
     handleBounds(layer);
-  }, [features, handleBounds, onToggleStatus]);
+  }, [labelGeojson, handleBounds]);
 
   return (
     <div className="lv-map-wrapper">
-      {loading && <div className="lv-map__loading">Loading map</div>}
+      {loading && <div className="lv-map__loading">Loading map</div>}
       <div ref={containerRef} className="lv-map" aria-label="Panel map" />
     </div>
   );

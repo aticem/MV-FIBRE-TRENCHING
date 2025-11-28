@@ -1,17 +1,17 @@
 export const TABLE_ID_REGEX = /-STR\d+$/i;
 
 export const TABLE_LAYER_DEFAULT_STYLE = {
-  color: "#475569",
-  weight: 1,
-  opacity: 0.85,
+  color: "#ff0000",
+  weight: 2,
+  opacity: 1,
   fillColor: "#cbd5f5",
   fillOpacity: 0.08
 };
 
 export const TABLE_LAYER_HOVER_STYLE = {
-  color: "#0ea5e9",
-  weight: 2,
-  opacity: 0.95,
+  color: "#00ff00",
+  weight: 4,
+  opacity: 1,
   fillColor: "#38bdf8",
   fillOpacity: 0.18
 };
@@ -116,26 +116,8 @@ function convertMultiLineStringToPolygon(feature) {
 }
 
 export function convertTablesToPolygons(tableGeojson) {
-  const features = tableGeojson?.features ?? [];
-  const converted = [];
-
-  for (const feature of features) {
-    if (!feature?.geometry) continue;
-    if (feature.geometry.type === "LineString") {
-      const polyFeature = convertLineStringToPolygon(feature);
-      if (polyFeature) converted.push(polyFeature);
-    } else if (feature.geometry.type === "MultiLineString") {
-      const polyFeature = convertMultiLineStringToPolygon(feature);
-      if (polyFeature) converted.push(polyFeature);
-    } else {
-      converted.push(feature);
-    }
-  }
-
-  return {
-    type: "FeatureCollection",
-    features: converted
-  };
+  // Return as is, since the geojson contains LineString features that should be displayed as lines
+  return tableGeojson;
 }
 
 export function findTableLabelsForGeometry(geometry, tableLabelPoints) {

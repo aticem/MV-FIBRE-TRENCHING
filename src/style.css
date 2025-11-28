@@ -1,3 +1,6 @@
+@import "leaflet/dist/leaflet.css";
+
+
 :root {
   font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: #0f172a;
@@ -280,30 +283,24 @@ body {
   gap: 0.5rem;
 }
 
-.lv-inverter-label {
+.lv-label {
   display: inline-flex;
   justify-content: center;
   align-items: center;
   transform: translate(-50%, -50%);
   font-weight: 700;
-  color: #dc2626;
+  color: #0f172a;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.75);
   pointer-events: auto;
 }
 
-.lv-inverter-label span {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(220, 38, 38, 0.35);
+.lv-label span {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.35);
   border-radius: 6px;
   padding: 0.15rem 0.4rem;
   font-size: 0.85rem;
   white-space: nowrap;
-}
-
-.lv-inverter-label.lv-inverter-label--selected span {
-  color: #15803d;
-  border-color: rgba(22, 163, 74, 0.6);
-  background: rgba(187, 247, 208, 0.95);
 }
 
 .lv-table-tooltip {
@@ -335,3 +332,18 @@ body {
   }
 }
 
+.text-label span {
+  color: blue;
+  font-size: 15px;
+  font-weight: bold;
+  white-space: nowrap;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+}
+
+.leaflet-tile-pane {
+  display: none !important;
+}
